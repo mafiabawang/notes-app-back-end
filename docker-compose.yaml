@@ -1,0 +1,72 @@
+version: '3.8'
+
+services:
+  notes-app-back-end:
+    container_name: notes-app-back-end
+    build:
+      context: .
+      dockerfile: Dockerfile
+    depends_on:
+      - notes-app-postgres
+      - rabbitmq
+      - redis
+    image: mafiabawang/notes-app-back-end:1.0.0
+    ports:
+      - "8080:8080"
+    networks:
+      - notes-app-network
+    
+
+
+  notes-app-postgres:
+    container_name: notes-app-postgres
+    image: "postgres:14-alpine"
+    environment:
+      - POSTGRES_DB=notesapp
+      - POSTGRES_PASSWORD_FILE=/run/secrets/ps_secret
+      - POSTGRES_USER_FILE=/run/secrets/us_secret
+    ports:
+      - "5432:5432"
+    volumes:
+      - notesapp-data:/var/lib/postgresql/data
+    networks:
+      - notes-app-network
+    secrets:
+      - us_secret
+      - ps_secret
+
+  rabbitmq:
+    container_name: rabbitmq
+    image: "rabbitmq:alpine"
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    networks:
+      - notes-app-network
+
+  redis:
+    container_name: redis
+    image: "redis:7-alpine"
+    ports:
+      - "6379:6379"
+    volumes:
+      - notesapp-redis:/data
+    networks:
+      - notes-app-network
+
+volumes:
+  notesapp-data:
+    name: notesapp-data
+  notesapp-redis:
+    name: notesapp-redis
+
+networks:
+  notes-app-network:
+    driver: bridge
+    name: notes-app-network
+
+secrets:
+  us_secret:
+    file: ./secrets/us_secret.txt
+  ps_secret:
+    file: ./secrets/ps_secret.txt
