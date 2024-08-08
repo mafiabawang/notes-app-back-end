@@ -1,5 +1,5 @@
 node_modules
-secret
+secrets
 .env
 ps_secret.txt
 us_secret.txt
